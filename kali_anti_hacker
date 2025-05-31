@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Configurações
+LOG_FILE="/var/log/anti_hacker.log"
+ALERT_THRESHOLD=5
+
+# Funções de monitoramento
+monitor_connections() {
+    while true; do
+        # Monitorar conexões suspeitas
+        suspicious=$(netstat -tunp | awk '$6=="ESTABLISHED" && $5!~/127.0.0.1|192.168./ {print}')
+        
+        if [ -n "$suspicious" ]; then
+            echo "[ALERT] Conexões suspeitas: " >> "$LOG_FILE"
+            echo "$suspicious" >> "$LOG_FILE"
+            notify-send -u critical "ALERTA: Conexão suspeita detectada!"
+        fi
+        
+        sleep 30
+    done
+}
+
+check_rootkits() {
+    echo "[*] Verificando rootkits..." | tee -a "$LOG_FILE"
+    rkhunter --check --sk | tee -a "$LOG_FILE"
+}
+
+analyze_logs() {
+    echo "[*] Analisando logs..." | tee -a "$LOG_FILE"
+    tail -n 100 /var/log/auth.log | grep -i "failed" | tee -a "$LOG_FILE"
+}
+
+# Menu principal
+case "$1" in
+    --start)
+        monitor_connections &
+        check_rootkits
+        analyze_logs
+        ;;
+    --stop)
+        pkill -f "kali_anti_hacker"
+        ;;
+    *)
+        echo "Uso: $0 [--start|--stop]"
+        exit 1
+        ;;
+esac
