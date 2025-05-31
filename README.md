@@ -19,4 +19,3 @@
 Execute em seu Kali Linux:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/seu-usuario/anti-hacker-suite/main/install.sh)
